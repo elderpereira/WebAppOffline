@@ -20,6 +20,27 @@
       });
     }
 
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const installButton = document.getElementById('installButton');
+      installButton.style.display = 'block';
+
+      installButton.addEventListener('click', () => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('Usuário aceitou a instalação');
+          } else {
+            console.log('Usuário rejeitou a instalação');
+          }
+          deferredPrompt = null;
+        });
+      });
+    });
+
     function isStandalone() {
       return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
     }
@@ -118,28 +139,6 @@
     </form>
   </div>
   <button id="installButton" class="btn btn-primary" style="display: none;">Instalar App</button>
-  <script>
-    let deferredPrompt;
-    const installButton = document.getElementById('installButton');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installButton.style.display = 'block';
-
-      installButton.addEventListener('click', () => {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('Usuário aceitou a instalação');
-          } else {
-            console.log('Usuário rejeitou a instalação');
-          }
-          deferredPrompt = null;
-        });
-      });
-    });
-  </script>
   <!-- Bootstrap JS and dependencies -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
