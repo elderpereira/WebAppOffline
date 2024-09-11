@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meu App</title>
   <link rel="manifest" href="/manifest.json">
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -22,18 +24,100 @@
       return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
     }
 
+    function updateOnlineStatus() {
+      const statusElement = document.getElementById('status');
+      if (navigator.onLine) {
+        statusElement.textContent = 'Online';
+        statusElement.classList.remove('badge-danger');
+        statusElement.classList.add('badge-success');
+      } else {
+        statusElement.textContent = 'Offline';
+        statusElement.classList.remove('badge-success');
+        statusElement.classList.add('badge-danger');
+      }
+    }
+
     window.addEventListener('load', () => {
+      const installButton = document.getElementById('installButton');
+      const content = document.getElementById('content');
       if (isStandalone()) {
         console.log('O usuário está usando a versão instalada do aplicativo.');
+        installButton.style.display = 'none';
+        content.style.display = 'block';
       } else {
         console.log('O usuário está acessando o site diretamente no navegador.');
+        installButton.style.display = 'block';
+        content.style.display = 'none';
       }
+
+      // Atualizar o status de conexão na inicialização
+      updateOnlineStatus();
+
+      // Adicionar listeners para eventos online e offline
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
     });
+
+    function generateJSON() {
+      const form = document.getElementById('checklistForm');
+      const formData = new FormData(form);
+      const json = {};
+
+      formData.forEach((value, key) => {
+        json[key] = value;
+      });
+
+      const jsonString = JSON.stringify(json, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      // Compartilhar o arquivo JSON
+      if (navigator.share) {
+        navigator.share({
+          title: 'Respostas do Checklist',
+          text: 'Aqui estão as respostas do checklist.',
+          files: [new File([blob], 'respostas.json', { type: 'application/json' })]
+        }).then(() => {
+          console.log('Compartilhamento bem-sucedido');
+        }).catch((error) => {
+          console.log('Erro ao compartilhar:', error);
+        });
+      } else {
+        console.log('API de Web Share não suportada');
+        // Fallback para download do arquivo
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'respostas.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    }
   </script>
 </head>
-<body>
-  <h1>Meu App</h1>
-  <button id="installButton" style="display: none;">Instalar App</button>
+<body class="d-flex flex-column align-items-center justify-content-center vh-100">
+  <div id="content" style="display: none;">
+    <h1>Meu App</h1>
+    <span id="status" class="badge"></span>
+    <!-- Formulário de Checklist -->
+    <form id="checklistForm" class="mt-4">
+      <div class="form-group">
+        <label for="pergunta1">Teste de pergunta sobre qualquer coisa?</label>
+        <select class="form-control" id="pergunta1" name="pergunta1">
+          <option value="sim">Sim</option>
+          <option value="nao">Não</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="pergunta2">Outra pergunta de teste?</label>
+        <select class="form-control" id="pergunta2" name="pergunta2">
+          <option value="sim">Sim</option>
+          <option value="nao">Não</option>
+        </select>
+      </div>
+      <button type="button" class="btn btn-success" onclick="generateJSON()">Gerar e Compartilhar JSON</button>
+    </form>
+  </div>
+  <button id="installButton" class="btn btn-primary" style="display: none;">Instalar App</button>
   <script>
     let deferredPrompt;
     const installButton = document.getElementById('installButton');
@@ -56,5 +140,9 @@
       });
     });
   </script>
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
