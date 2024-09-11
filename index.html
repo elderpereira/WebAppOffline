@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>v1.3.3 APP</title>
+  <title>v1.3.4 APP</title>
   <link rel="manifest" href="/manifest.json">
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -66,6 +66,7 @@
             <button class="btn btn-danger btn-sm" onclick="deleteData('${key}')">Excluir</button>
             <button class="btn btn-primary btn-sm" onclick="downloadData('${key}')">Baixar</button>
             <button class="btn btn-secondary btn-sm" onclick="shareData('${key}')">Compartilhar</button>
+            <button class="btn btn-success btn-sm" onclick="shareViaWhatsApp('${key}')">Compartilhar via WhatsApp</button>
           </div>
         `;
         storedDataElement.appendChild(listItem);
