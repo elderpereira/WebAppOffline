@@ -20,27 +20,6 @@
       });
     }
 
-    let deferredPrompt;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const installButton = document.getElementById('installButton');
-      installButton.style.display = 'block';
-
-      installButton.addEventListener('click', () => {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('Usuário aceitou a instalação');
-          } else {
-            console.log('Usuário rejeitou a instalação');
-          }
-          deferredPrompt = null;
-        });
-      });
-    });
-
     function isStandalone() {
       return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
     }
@@ -58,21 +37,25 @@
       }
     }
 
+    function updateDataCount() {
+      const dataCountElement = document.getElementById('dataCount');
+      const dataCount = localStorage.length;
+      dataCountElement.textContent = `Dados armazenados: ${dataCount}`;
+    }
+
     window.addEventListener('load', () => {
-      const installButton = document.getElementById('installButton');
       const content = document.getElementById('content');
       if (isStandalone()) {
         console.log('O usuário está usando a versão instalada do aplicativo.');
-        installButton.style.display = 'none';
         content.style.display = 'block';
       } else {
         console.log('O usuário está acessando o site diretamente no navegador.');
-        installButton.style.display = 'block';
-        content.style.display = 'none';
+        content.style.display = 'block';
       }
 
       // Atualizar o status de conexão na inicialização
       updateOnlineStatus();
+      updateDataCount();
 
       // Adicionar listeners para eventos online e offline
       window.addEventListener('online', updateOnlineStatus);
@@ -91,6 +74,10 @@
       const jsonString = JSON.stringify(json, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
+
+      // Armazenar dados no localStorage
+      localStorage.setItem(`checklist_${Date.now()}`, jsonString);
+      updateDataCount();
 
       // Compartilhar o arquivo JSON
       if (navigator.share) {
@@ -119,6 +106,7 @@
   <div id="content" style="display: none;">
     <h1>Meu App</h1>
     <span id="status" class="badge"></span>
+    <span id="dataCount" class="badge badge-info mt-2"></span>
     <!-- Formulário de Checklist -->
     <form id="checklistForm" class="mt-4">
       <div class="form-group">
@@ -138,7 +126,6 @@
       <button type="button" class="btn btn-success" onclick="generateJSON()">Gerar e Compartilhar JSON</button>
     </form>
   </div>
-  <button id="installButton" class="btn btn-primary" style="display: none;">Instalar App</button>
   <!-- Bootstrap JS and dependencies -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
