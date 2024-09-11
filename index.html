@@ -3,19 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>v1.2.8 APP</title>
+  <title>v1.3 APP</title>
   <link rel="manifest" href="/manifest.json">
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <script>
+    function log(message) {
+      const logElement = document.getElementById('log');
+      const logMessage = document.createElement('div');
+      logMessage.textContent = message;
+      logElement.appendChild(logMessage);
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
           .then(registration => {
-            log('ServiceWorker registrado com sucesso:', registration);
+            log('ServiceWorker registrado com sucesso: ' + JSON.stringify(registration));
           })
           .catch(error => {
-            log('Falha ao registrar o ServiceWorker:', error);
+            log('Falha ao registrar o ServiceWorker: ' + error.message);
           });
       });
     }
@@ -94,7 +101,7 @@
         }).then(() => {
           log('Compartilhamento bem-sucedido');
         }).catch((error) => {
-          log('Erro ao compartilhar:', error);
+          log('Erro ao compartilhar: ' + error.message);
         });
       } else {
         log('API de Web Share não suportada ou não pode compartilhar arquivos.');
@@ -159,7 +166,7 @@
         }).then(() => {
           log('Compartilhamento bem-sucedido');
         }).catch((error) => {
-          log('Erro ao compartilhar:', error);
+          log('Erro ao compartilhar: ' + error.message);
         });
       } else {
         log('API de Web Share não suportada');
@@ -170,13 +177,6 @@
         a.click();
         URL.revokeObjectURL(url);
       }
-    }
-
-    function log(message) {
-      const logElement = document.getElementById('log');
-      const logMessage = document.createElement('div');
-      logMessage.textContent = message;
-      logElement.appendChild(logMessage);
     }
   </script>
 </head>
