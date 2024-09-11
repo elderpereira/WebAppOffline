@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>v1.3.1 APP</title>
+  <title>v1.3.3 APP</title>
   <link rel="manifest" href="/manifest.json">
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -106,8 +106,23 @@
           log('Erro ao compartilhar: ' + error.message);
         });
       } else {
-        log('API de Web Share não suportada ou não pode compartilhar arquivos.');
+        log('API de Web Share não suportada ou não pode compartilhar arquivos. Fazendo download do arquivo.');
+        // Fallback para download do arquivo
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${key}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
       }
+    }
+
+    function shareViaWhatsApp(key) {
+      const value = localStorage.getItem(key);
+      const blob = new Blob([value], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const whatsappUrl = `https://api.whatsapp.com/send?text=Aqui está o registro do checklist: ${url}`;
+      window.open(whatsappUrl, '_blank');
     }
 
     window.addEventListener('load', () => {
@@ -174,7 +189,7 @@
           log('Erro ao compartilhar: ' + error.message);
         });
       } else {
-        log('API de Web Share não suportada');
+        log('API de Web Share não suportada ou não pode compartilhar arquivos. Fazendo download do arquivo.');
         // Fallback para download do arquivo
         const a = document.createElement('a');
         a.href = url;
