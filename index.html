@@ -58,6 +58,7 @@
           <div>
             <button class="btn btn-danger btn-sm" onclick="deleteData('${key}')">Excluir</button>
             <button class="btn btn-primary btn-sm" onclick="downloadData('${key}')">Baixar</button>
+            <button class="btn btn-secondary btn-sm" onclick="shareData('${key}')">Compartilhar</button>
           </div>
         `;
         storedDataElement.appendChild(listItem);
@@ -78,6 +79,26 @@
       a.download = `${key}.json`;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    function shareData(key) {
+      const value = localStorage.getItem(key);
+      const blob = new Blob([value], { type: 'application/json' });
+      const file = new File([blob], `${key}.json`, { type: 'application/json' });
+
+      if (navigator.share) {
+        navigator.share({
+          title: 'Compartilhar Registro',
+          text: 'Aqui está o registro do checklist.',
+          files: [file]
+        }).then(() => {
+          console.log('Compartilhamento bem-sucedido');
+        }).catch((error) => {
+          console.log('Erro ao compartilhar:', error);
+        });
+      } else {
+        console.log('API de Web Share não suportada');
+      }
     }
 
     window.addEventListener('load', () => {
