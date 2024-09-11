@@ -118,6 +118,12 @@
       // Adicionar listeners para eventos online e offline
       window.addEventListener('online', updateOnlineStatus);
       window.addEventListener('offline', updateOnlineStatus);
+
+      // Desabilitar o refresh da página
+      window.addEventListener('beforeunload', (event) => {
+        event.preventDefault();
+        event.returnValue = '';
+      });
     });
 
     function generateJSON(event) {
