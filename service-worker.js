@@ -1,4 +1,4 @@
-const CACHE_NAME = 'meu-app-cache-v1';
+const CASH_APP_DIIRRR = 'meu-app-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -14,7 +14,7 @@ const urlsToCache = [
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open(CASH_APP_DIIRRR)
       .then(cache => {
         return cache.addAll(urlsToCache);
       })
