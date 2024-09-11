@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>V1.2.6 Meu App</title>
+  <title>v1.2.7 APP</title>
   <link rel="manifest" href="/manifest.json">
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -121,8 +121,10 @@
 
       // Desabilitar o refresh da página
       window.addEventListener('beforeunload', (event) => {
-        event.preventDefault();
-        event.returnValue = '';
+        if (!navigator.onLine) {
+          event.preventDefault();
+          event.returnValue = '';
+        }
       });
     });
 
@@ -149,7 +151,7 @@
       updateDataCount();
 
       // Compartilhar o arquivo JSON
-      if (navigator.share) {
+      if (navigator.canShare && navigator.canShare({ files: [new File([blob], 'respostas.json', { type: 'application/json' })] })) {
         navigator.share({
           title: 'Respostas do Checklist',
           text: 'Aqui estão as respostas do checklist.',
