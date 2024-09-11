@@ -17,7 +17,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('./service-worker.js')
           .then(registration => {
             log('ServiceWorker registrado com sucesso: ' + JSON.stringify(registration));
           })
@@ -93,6 +93,8 @@
       const blob = new Blob([value], { type: 'application/json' });
       const file = new File([blob], `${key}.json`, { type: 'application/json' });
 
+      log('Tentando compartilhar arquivo: ' + file.name);
+
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         navigator.share({
           title: 'Compartilhar Registro',
@@ -158,11 +160,14 @@
       updateDataCount();
 
       // Compartilhar o arquivo JSON
-      if (navigator.canShare && navigator.canShare({ files: [new File([blob], 'respostas.json', { type: 'application/json' })] })) {
+      const file = new File([blob], 'respostas.json', { type: 'application/json' });
+      log('Tentando compartilhar arquivo: ' + file.name);
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         navigator.share({
           title: 'Respostas do Checklist',
           text: 'Aqui estão as respostas do checklist.',
-          files: [new File([blob], 'respostas.json', { type: 'application/json' })]
+          files: [file]
         }).then(() => {
           log('Compartilhamento bem-sucedido');
         }).catch((error) => {
