@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>v1.2.8 APP</title>
+  <title>v1.2.7 APP</title>
   <link rel="manifest" href="/manifest.json">
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -12,10 +12,10 @@
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
           .then(registration => {
-            console.log('ServiceWorker registrado com sucesso:', registration);
+            log('ServiceWorker registrado com sucesso:', registration);
           })
           .catch(error => {
-            console.log('Falha ao registrar o ServiceWorker:', error);
+            log('Falha ao registrar o ServiceWorker:', error);
           });
       });
     }
@@ -92,22 +92,22 @@
           text: 'Aqui está o registro do checklist.',
           files: [file]
         }).then(() => {
-          console.log('Compartilhamento bem-sucedido');
+          log('Compartilhamento bem-sucedido');
         }).catch((error) => {
-          console.log('Erro ao compartilhar:', error);
+          log('Erro ao compartilhar:', error);
         });
       } else {
-        console.log('API de Web Share não suportada ou não pode compartilhar arquivos.');
+        log('API de Web Share não suportada ou não pode compartilhar arquivos.');
       }
     }
 
     window.addEventListener('load', () => {
       const content = document.getElementById('content');
       if (isStandalone()) {
-        console.log('O usuário está usando a versão instalada do aplicativo.');
+        log('O usuário está usando a versão instalada do aplicativo.');
         content.style.display = 'block';
       } else {
-        console.log('O usuário está acessando o site diretamente no navegador.');
+        log('O usuário está acessando o site diretamente no navegador.');
         content.style.display = 'block';
       }
 
@@ -157,12 +157,12 @@
           text: 'Aqui estão as respostas do checklist.',
           files: [new File([blob], 'respostas.json', { type: 'application/json' })]
         }).then(() => {
-          console.log('Compartilhamento bem-sucedido');
+          log('Compartilhamento bem-sucedido');
         }).catch((error) => {
-          console.log('Erro ao compartilhar:', error);
+          log('Erro ao compartilhar:', error);
         });
       } else {
-        console.log('API de Web Share não suportada');
+        log('API de Web Share não suportada');
         // Fallback para download do arquivo
         const a = document.createElement('a');
         a.href = url;
@@ -170,6 +170,13 @@
         a.click();
         URL.revokeObjectURL(url);
       }
+    }
+
+    function log(message) {
+      const logElement = document.getElementById('log');
+      const logMessage = document.createElement('div');
+      logMessage.textContent = message;
+      logElement.appendChild(logMessage);
     }
   </script>
 </head>
@@ -202,6 +209,7 @@
     </form>
     <ul id="storedData" class="list-group mt-4"></ul>
   </div>
+  <div id="log" class="mt-4"></div>
   <!-- Bootstrap JS and dependencies -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
