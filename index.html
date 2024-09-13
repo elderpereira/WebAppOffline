@@ -8,6 +8,8 @@
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <script>
+    const webhookUrl = 'https://prod-48.westus.logic.azure.com:443/workflows/dfc1942eddb0410e9ccd62683bc89877/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1VJN4aMYehByf4kvolyAyUgmE-lI-zVBk7A1FRqn-FE';
+
     function log(message) {
       const logElement = document.getElementById('log');
       const logMessage = document.createElement('div');
@@ -63,10 +65,11 @@
         listItem.innerHTML = `
           <span>${data.name} - ${data.date}</span>
           <div>
+            <span id="status-${key}" class="badge ${data.sent ? 'badge-success' : 'badge-danger'}">${data.sent ? 'Enviado' : 'Não Enviado'}</span>
             <button class="btn btn-danger btn-sm" onclick="deleteData('${key}')">Excluir</button>
             <button class="btn btn-primary btn-sm" onclick="downloadData('${key}')">Baixar</button>
-            <button class="btn btn-secondary btn-sm" onclick="shareData('${key}')">Compartilhar</button>
-            <button class="btn btn-success btn-sm" onclick="shareViaWhatsApp('${key}')">Compartilhar via WhatsApp</button>
+            <button class="btn btn-secondary btn-sm" onclick="sendData('${key}')">Enviar Registro</button>
+            <span id="timer-${key}" class="badge badge-warning" style="display: none;"></span>
           </div>
         `;
         storedDataElement.appendChild(listItem);
@@ -89,41 +92,61 @@
       URL.revokeObjectURL(url);
     }
 
-    function shareData(key) {
+    function sendData(key) {
       const value = localStorage.getItem(key);
-      const blob = new Blob([value], { type: 'application/json' });
-      const file = new File([blob], `${key}.json`, { type: 'application/json' });
+      const data = JSON.parse(value);
 
-      log('Tentando compartilhar arquivo: ' + file.name);
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({
-          title: 'Compartilhar Registro',
-          text: 'Aqui está o registro do checklist.',
-          files: [file]
-        }).then(() => {
-          log('Compartilhamento bem-sucedido');
-        }).catch((error) => {
-          log('Erro ao compartilhar: ' + error.message);
-        });
+      if (data.sent) {
+        if (confirm('O registro já foi enviado. Deseja enviar novamente?')) {
+          startCountdown(key, data);
+        }
       } else {
-        log('API de Web Share não suportada ou não pode compartilhar arquivos. Fazendo download do arquivo.');
-        // Fallback para download do arquivo
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `${key}.json`;
-        a.click();
-        URL.revokeObjectURL(a.href);
+        sendToWebhook(key, data);
       }
     }
 
-    function shareViaWhatsApp(key) {
-      const value = localStorage.getItem(key);
-      const blob = new Blob([value], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
+    function startCountdown(key, data) {
+      const timerElement = document.getElementById(`timer-${key}`);
+      timerElement.style.display = 'inline';
+      let countdown = 10;
+      timerElement.textContent = `Aguardando ${countdown}s`;
 
-      const whatsappUrl = `https://api.whatsapp.com/send?text=Aqui está o registro do checklist: ${url}`;
-      window.open(whatsappUrl, '_blank');
+      const interval = setInterval(() => {
+        countdown--;
+        timerElement.textContent = `Aguardando ${countdown}s`;
+
+        if (countdown === 0) {
+          clearInterval(interval);
+          timerElement.style.display = 'none';
+          if (confirm('Enviar novamente?')) {
+            sendToWebhook(key, data);
+          }
+        }
+      }, 1000);
+    }
+
+    function sendToWebhook(key, data) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (response.ok) {
+          log('Registro enviado com sucesso');
+          data.sent = true;
+          localStorage.setItem(key, JSON.stringify(data));
+          document.getElementById(`status-${key}`).className = 'badge badge-success';
+          document.getElementById(`status-${key}`).textContent = 'Enviado';
+        } else {
+          log('Falha ao enviar o registro');
+        }
+      })
+      .catch(error => {
+        log('Erro ao enviar o registro: ' + error.message);
+      });
     }
 
     window.addEventListener('load', () => {
@@ -144,11 +167,11 @@
       window.addEventListener('online', updateOnlineStatus);
       window.addEventListener('offline', updateOnlineStatus);
 
-      // Desabilitar o refresh da página
+      // Desabilitar o refresh da página se offline
       window.addEventListener('beforeunload', (event) => {
         if (!navigator.onLine) {
           event.preventDefault();
-          event.returnValue = '';
+          event.returnValue = ''; // Necessário para alguns navegadores
         }
       });
     });
@@ -175,29 +198,7 @@
       localStorage.setItem(`checklist_${Date.now()}`, jsonString);
       updateDataCount();
 
-      // Compartilhar o arquivo JSON
-      const file = new File([blob], 'respostas.json', { type: 'application/json' });
-      log('Tentando compartilhar arquivo: ' + file.name);
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({
-          title: 'Respostas do Checklist',
-          text: 'Aqui estão as respostas do checklist.',
-          files: [file]
-        }).then(() => {
-          log('Compartilhamento bem-sucedido');
-        }).catch((error) => {
-          log('Erro ao compartilhar: ' + error.message);
-        });
-      } else {
-        log('API de Web Share não suportada ou não pode compartilhar arquivos. Fazendo download do arquivo.');
-        // Fallback para download do arquivo
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'respostas.json';
-        a.click();
-        URL.revokeObjectURL(url);
-      }
+      log('Registro gerado com sucesso');
     }
   </script>
 </head>
@@ -226,7 +227,7 @@
           <option value="nao">Não</option>
         </select>
       </div>
-      <button type="submit" class="btn btn-success">Gerar e Compartilhar JSON</button>
+      <button type="submit" class="btn btn-success">Gerar JSON</button>
     </form>
     <ul id="storedData" class="list-group mt-4"></ul>
   </div>
