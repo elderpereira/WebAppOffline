@@ -2,12 +2,63 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>v1.3.4 APP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>v1.3.6 APP</title>
   <link rel="manifest" href="/manifest.json">
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .list-group-item {
+      margin-bottom: 10px;
+    }
+    .badge {
+      margin-left: 5px;
+    }
+    #installButton {
+      display: none;
+      margin-bottom: 20px;
+    }
+    .fixed-top {
+      background-color: white;
+      padding: 10px 0;
+      z-index: 1000;
+    }
+    .content {
+      margin-top: 150px; /* Ajuste conforme necessário */
+    }
+  </style>
   <script>
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installButton').style.display = 'block';
+    });
+
+    function installApp() {
+      const installButton = document.getElementById('installButton');
+      installButton.style.display = 'none';
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+
     const webhookUrl = 'https://prod-48.westus.logic.azure.com:443/workflows/dfc1942eddb0410e9ccd62683bc89877/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1VJN4aMYehByf4kvolyAyUgmE-lI-zVBk7A1FRqn-FE';
 
     function log(message) {
@@ -202,11 +253,14 @@
     }
   </script>
 </head>
-<body class="d-flex flex-column align-items-center justify-content-center vh-100">
-  <div id="content" style="display: none;">
+<body>
+  <div class="fixed-top container">
+    <button id="installButton" class="btn btn-primary" onclick="installApp()">Instalar App</button>
     <h1>Meu App</h1>
     <span id="status" class="badge"></span>
     <span id="dataCount" class="badge badge-info mt-2"></span>
+  </div>
+  <div id="content" class="container content">
     <!-- Formulário de Checklist -->
     <form id="checklistForm" class="mt-4" onsubmit="generateJSON(event)">
       <div class="form-group">
